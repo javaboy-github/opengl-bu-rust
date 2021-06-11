@@ -1,0 +1,8 @@
+[package]
+name = "opengl-by-rust"
+version = "0.1.0"
+authors = ["javaboy-github <javaboy@outlook.jp>"]
+edition = "2018"
+
+[dependencies]
+glium = "*"
