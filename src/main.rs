@@ -4,6 +4,9 @@ extern crate image;
 
 use std::io::Cursor;
 
+#[path="./teapot.rs"]
+mod teapot;
+
 fn main() {
     #[allow(unused_imports)]
     use glium::{glutin, Surface};
@@ -13,62 +16,30 @@ fn main() {
     let cb = glutin::ContextBuilder::new();
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
-    let image = image::load(Cursor::new(&include_bytes!("../img/75339009.png")), image::ImageFormat::Png).unwrap().to_rgba8();
-    let image_dimentions = image.dimensions();
-    let image =
-        glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimentions);
-    let texture = glium::texture::Texture2d::new(&display, image).unwrap();
-
-    #[derive(Copy, Clone)]
-    struct Vertex {
-        position: [f32; 2],
-        tex_coords: [f32; 2],
-    }
-
-    implement_vertex!(Vertex, position, tex_coords);
-
-    let vertex1 = Vertex {
-        position: [-0.5, -0.5],
-        tex_coords: [0.0, 0.0],
-    };
-    let vertex2 = Vertex {
-        position: [0.0, 0.5],
-        tex_coords: [0.0, 1.0],
-    };
-    let vertex3 = Vertex {
-        position: [0.5, -0.25],
-        tex_coords: [1.0, 0.0],
-    };
-    let shape = vec![vertex1, vertex2, vertex3];
-
-    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
-    let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+    let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
+    let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
+    let indices = glium::IndexBuffer::new(&display, glium::index::PrimitiveType::TrianglesList, &teapot::INDICES).unwrap();
 
     let vertex_shader_src = r#"
         #version 140
 
-        in vec2 position;
-        in vec2 tex_coords;
-        out vec2 v_tex_coords;
+        in vec3 position;
+        in vec3 normal;
 
         uniform mat4 matrix;
 
         void main() {
-            v_tex_coords = tex_coords;
-            gl_Position = matrix * vec4(position, 0.0, 1.0);
+            gl_Position = matrix * vec4(position, 1.0);
         }
     "#;
 
     let fragment_shader_src = r#"
         #version 140
 
-        in vec2 v_tex_coords;
         out vec4 color;
 
-        uniform sampler2D tex;
-
         void main() {
-            color = texture(tex, v_tex_coords);
+            color = vec4(1.0, 0.0, 0.0, 1.0);
         }
     "#;
 
@@ -109,17 +80,16 @@ fn main() {
 
         let uniforms = uniform! {
             matrix: [
-                [t.cos(), t.sin(), 0.0, 0.0],
-                [-t.sin(), -t.cos(), 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0],
-                [t, 0.0, 1.0, 1.0f32],
+                [0.01, 0.0, 0.0, 0.0],
+                [0.0, 0.01, 0.0, 0.0],
+                [0.0, 0.0, 0.01, 0.0],
+                [0.0, 0.0, 0.0, 1.0f32],
             ],
-            tex: &texture
         };
 
         target
             .draw(
-                &vertex_buffer,
+                (&positions, &normals),
                 &indices,
                 &program,
                 &uniforms,
