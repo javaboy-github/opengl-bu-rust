@@ -2,10 +2,6 @@
 extern crate glium;
 extern crate image;
 
-use std::env;
-use std::fs::File;
-use std::io::prelude::*;
-
 #[path="./teapot.rs"]
 mod teapot;
 
@@ -15,7 +11,7 @@ fn main() {
 
     let event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new();
-    let cb = glutin::ContextBuilder::new();
+    let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
     let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
@@ -60,7 +56,7 @@ fn main() {
         }
 
         let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
+        target.clear_color_and_depth((0.0, 0., 1.0, 1.0), 1.0);
 
         let uniforms = uniform! {
             matrix: [
@@ -71,6 +67,14 @@ fn main() {
             ],
             u_light: [-1.0, 0.4, 0.9f32]
         };
+        let params = glium::DrawParameters {
+            depth: glium::Depth {
+                test: glium::draw_parameters::DepthTest::IfLess,
+                write: true,
+                .. Default::default()
+            },
+            .. Default::default()
+        };
 
 
         target
@@ -79,7 +83,7 @@ fn main() {
                 &indices,
                 &program,
                 &uniforms,
-                &Default::default(),
+                &params
             )
             .unwrap();
         target.finish().unwrap();
