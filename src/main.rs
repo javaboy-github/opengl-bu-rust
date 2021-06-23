@@ -2,7 +2,7 @@
 extern crate glium;
 extern crate image;
 
-#[path="./teapot.rs"]
+#[path = "./teapot.rs"]
 mod teapot;
 
 fn main() {
@@ -16,7 +16,12 @@ fn main() {
 
     let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
     let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
-    let indices = glium::IndexBuffer::new(&display, glium::index::PrimitiveType::TrianglesList, &teapot::INDICES).unwrap();
+    let indices = glium::IndexBuffer::new(
+        &display,
+        glium::index::PrimitiveType::TrianglesList,
+        &teapot::INDICES,
+    )
+    .unwrap();
 
     // main.vertを読み込む
     let vertex_shader_src = include_str!("./main.vert");
@@ -63,19 +68,37 @@ fn main() {
                 [0.01, 0.0, 0.0, 0.0],
                 [0.0, 0.01, 0.0, 0.0],
                 [0.0, 0.0, 0.01, 0.0],
-                [0.0, 0.0, 0.0, 1.0f32],
+                [0.0, 0.0, 2.0, 1.0f32],
             ],
-            u_light: [-1.0, 0.4, 0.9f32]
+            u_light: [-1.0, 0.4, 0.9f32],
+                perspective: {
+
+                    let (width, height) = target.get_dimensions();
+                    let aspect_ratio = height as f32 / width as f32;
+
+
+                    let fov: f32 = 3.141592 / 3.0;
+                    let zfar = 1024.0;
+                    let znear = 0.1;
+
+                    let f = 1.0/ (fov/ 2.0).tan();
+
+                    [
+                        [f * aspect_ratio, 0.0, 0.0, 0.0],
+                        [0.0, f, 0.0, 0.0],
+                        [0.0, 0.0, (zfar+znear)/ (zfar-znear), 1.0],
+                        [0.0, 0.0, -(2.0*zfar*znear)/(zfar-znear), 0.0]
+                    ]
+                }
         };
         let params = glium::DrawParameters {
             depth: glium::Depth {
                 test: glium::draw_parameters::DepthTest::IfLess,
                 write: true,
-                .. Default::default()
+                ..Default::default()
             },
-            .. Default::default()
+            ..Default::default()
         };
-
 
         target
             .draw(
@@ -83,7 +106,7 @@ fn main() {
                 &indices,
                 &program,
                 &uniforms,
-                &params
+                &params,
             )
             .unwrap();
         target.finish().unwrap();
