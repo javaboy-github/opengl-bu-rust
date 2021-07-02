@@ -48,6 +48,7 @@ fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f3
 fn main() {
     #[allow(unused_imports)]
     use glium::{glutin, Surface};
+    use glium::glutin::event::VirtualKeyCode;
 
     let event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new();
@@ -81,7 +82,11 @@ fn main() {
                     return;
                 }
                 glutin::event::WindowEvent::KeyboardInput { input, .. } => {
-                    println!("key event: {:?}", input.virtual_keycode);
+                    match input.virtual_keycode {
+                        Some(VirtualKeyCode::A) => view[2][0] += 0.01,
+                        Some(VirtualKeyCode::D) => view[2][0] -= 0.01,
+                        _ => return,
+                    }
                 }
                 _ => return,
             },
