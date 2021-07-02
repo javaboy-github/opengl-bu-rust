@@ -39,11 +39,10 @@ fn main() {
                 glutin::event::WindowEvent::CloseRequested => {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                     return;
-                },
-                glutin::event::WindowEvent::KeyboardInput{input, ..}=> {
+                }
+                glutin::event::WindowEvent::KeyboardInput { input, .. } => {
                     println!("key event: {:?}", input.virtual_keycode);
-                    
-                },
+                }
                 _ => return,
             },
             glutin::event::Event::NewEvents(cause) => match cause {
@@ -96,8 +95,13 @@ fn main() {
                 }
         };
         let params = glium::DrawParameters {
-            point_size: Some(26.0),
-            .. Default::default()
+            depth: glium::Depth {
+                test: glium::DepthTest::IfLess,
+                write: true,
+                ..Default::default()
+            },
+            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+            ..Default::default()
         };
 
         target
