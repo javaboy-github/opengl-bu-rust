@@ -41,7 +41,7 @@ fn main() {
                     return;
                 },
                 glutin::event::WindowEvent::KeyboardInput{input, ..}=> {
-                    println!("key event: {:?}", input.virual_keycode);
+                    println!("key event: {:?}", input.virtual_keycode);
                     
                 },
                 _ => return,
