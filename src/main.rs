@@ -83,8 +83,8 @@ fn main() {
                 }
                 glutin::event::WindowEvent::KeyboardInput { input, .. } => {
                     match input.virtual_keycode {
-                        Some(VirtualKeyCode::A) => view[2][0] += 0.01,
-                        Some(VirtualKeyCode::D) => view[2][0] -= 0.01,
+                        Some(VirtualKeyCode::A) => view[2][0] += 0.05,
+                        Some(VirtualKeyCode::D) => view[2][0] -= 0.05,
                         _ => return,
                     }
                 }
