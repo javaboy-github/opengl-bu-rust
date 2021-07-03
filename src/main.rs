@@ -85,6 +85,10 @@ fn main() {
                     match input.virtual_keycode {
                         Some(VirtualKeyCode::A) => view[2][0] += 0.05,
                         Some(VirtualKeyCode::D) => view[2][0] -= 0.05,
+                        Some(VirtualKeyCode::Space) => view[2][1] -= 0.05,
+                        Some(VirtualKeyCode::LShift) => view[2][1] += 0.05,
+                        Some(VirtualKeyCode::W) => view[2][2] -= 0.05,
+                        Some(VirtualKeyCode::S) => view[2][2] += 0.05,
                         _ => return,
                     }
                 }
