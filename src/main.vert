@@ -7,8 +7,11 @@ out vec3 v_normal;
 out vec3 v_position;
 
 uniform mat4 perspective;
+// カメラを表した行列
 uniform mat4 view;
+// 頂点位置を変更するための行列
 uniform mat4 model;
+
 
 void main() {
 	mat4 modelview = view * model;

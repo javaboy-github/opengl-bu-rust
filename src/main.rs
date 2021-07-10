@@ -46,9 +46,9 @@ fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f3
 }
 
 fn main() {
+    use glium::glutin::event::VirtualKeyCode;
     #[allow(unused_imports)]
     use glium::{glutin, Surface};
-    use glium::glutin::event::VirtualKeyCode;
 
     let event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new();
@@ -73,7 +73,12 @@ fn main() {
         glium::Program::from_source(&display, &vertex_shader_src, fragment_shader_src, None)
             .unwrap();
 
-    let mut view = view_matrix(&[2.0, -1.0, 1.0], &[-2.0, 1.0, 1.0], &[0.0, 1.0, 0.0]);
+    // カメラの表示 [位置, 方向, 画面上部のシーン座標の方向]
+    // 位置は、ティーポットを中心に置くための値
+    // 方向は、シーン座標をカメラが向いている
+    // 画面上部のシーン座標の方向は、　スクリーンのトップのシーン座標の方向を表す
+    let mut original_view = [[2.0, -1.0, 0.0], [-2.0, 1.0, 1.0], [0.0, 1.0, 0.0]];
+    let mut old_cursor_coords = glium::glutin::dpi::PhysicalPosition { x: 0.0, y: 0.0 };
     event_loop.run(move |event, _, control_flow| {
         match event {
             glutin::event::Event::WindowEvent { event, .. } => match event {
@@ -81,14 +86,24 @@ fn main() {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                     return;
                 }
+                glutin::event::WindowEvent::CursorMoved { position, .. } => {
+                    let x = position.x;
+                    let y = position.y;
+                    let dx = old_cursor_coords.x - x; // different x
+                    let dy = old_cursor_coords.y - y; // different x
+                    original_view[1][2] -= dx as f32 / 10f32;
+                    original_view[1][0] -= dy as f32 / 10f32;
+                    old_cursor_coords = position;
+                }
                 glutin::event::WindowEvent::KeyboardInput { input, .. } => {
+                    let motion = 1f32;
                     match input.virtual_keycode {
-                        Some(VirtualKeyCode::A) => view[2][0] += 0.05,
-                        Some(VirtualKeyCode::D) => view[2][0] -= 0.05,
-                        Some(VirtualKeyCode::Space) => view[2][1] -= 0.05,
-                        Some(VirtualKeyCode::LShift) => view[2][1] += 0.05,
-                        Some(VirtualKeyCode::W) => view[2][2] -= 0.05,
-                        Some(VirtualKeyCode::S) => view[2][2] += 0.05,
+                        Some(VirtualKeyCode::A)      => original_view[0][0] += motion,
+                        Some(VirtualKeyCode::D)      => original_view[0][0] -= motion,
+                        Some(VirtualKeyCode::Space)  => original_view[0][1] -= motion,
+                        Some(VirtualKeyCode::LShift) => original_view[0][1] += motion,
+                        Some(VirtualKeyCode::W)      => original_view[0][2] -= motion,
+                        Some(VirtualKeyCode::S)      => original_view[0][2] += motion,
                         _ => return,
                     }
                 }
@@ -116,10 +131,9 @@ fn main() {
                 [0.0, 0.0, 0.01, 0.0],
                 [0.0, 0.0, 2.0, 1.0f32],
             ],
-            view:view,
+            view: view_matrix(&original_view[0], &original_view[1], &original_view[2]),
             u_light: [-1.0, 0.4, 0.9f32],
             perspective: {
-
                 let (width, height) = target.get_dimensions();
                 let aspect_ratio = height as f32 / width as f32;
 
