@@ -5,37 +5,53 @@ extern crate image;
 #[path = "./teapot.rs"]
 mod teapot;
 
+use cgmath::Vector3;
+
 fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f32; 4]; 4] {
+    use cgmath::ElementWise;
+    /// ベクトル内の要素の合計を返す
+    /// # example
+    /// ```rust
+    /// assert_eq!(sum(Vector3::new(1, 2, 3)), 6);
+    /// ```
+    fn sum(vec: Vector3<f32>) -> f32 {
+        return vec.x + vec.y + vec.z;
+    }
+
+    let position = Vector3::new(position[0], position[1], position[2]);
+    let direction = Vector3::new(direction[0], direction[1], direction[2]);
+    let up = Vector3::new(up[0], up[1], up[2]);
+
     let f = {
         let f = direction;
-        let len = f[0] * f[0] + f[1] * f[1] + f[2] * f[2];
+        let len = sum(f.map(|e| e.powi(2)));
         let len = len.sqrt();
-        [f[0] / len, f[1] / len, f[2] / len]
+        f.map(|e| e / len)
     };
 
-    let s = [
+    let s = Vector3::new(
         up[1] * f[2] - up[2] * f[1],
-        up[2] * f[0] - up[2] * f[2],
+        up[2] * f[0] - up[0] * f[2],
         up[0] * f[1] - up[1] * f[0],
-    ];
+    );
 
     let s_norm = {
-        let len = s[0] * s[0] + s[1] * s[1] + s[2] * s[2];
+        let len = sum(s.map(|e| e.powi(2)));
         let len = len.sqrt();
-        [s[0] / len, s[1] / len, s[2] / len]
+        s.map(|e| e / len)
     };
 
-    let u = [
+    let u = Vector3::new(
         f[1] * s_norm[2] - f[2] * s_norm[1],
         f[2] * s_norm[0] - f[0] * s_norm[2],
         f[0] * s_norm[1] - f[1] * s_norm[0],
-    ];
+    );
 
-    let p = [
-        -position[0] * s_norm[0] - position[1] * s_norm[1] - position[2] * s_norm[2],
-        -position[0] * u[0] - position[1] * u[1] - position[2] * u[2],
-        -position[0] * f[0] - position[1] * f[1] - position[2] * u[2],
-    ];
+    let p = Vector3::new(
+        sum(-position.mul_element_wise(s_norm)),
+        sum(-position.mul_element_wise(u)),
+        sum(-position.mul_element_wise(f)),
+    );
 
     [
         [s_norm[0], u[0], f[0], 0.0],
@@ -46,7 +62,6 @@ fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f3
 }
 
 fn main() {
-    use glium::glutin::event::VirtualKeyCode;
     #[allow(unused_imports)]
     use glium::{glutin, Surface};
 
@@ -97,15 +112,6 @@ fn main() {
                 }
                 glutin::event::WindowEvent::KeyboardInput { input, .. } => {
                     let motion = 1f32;
-                    match input.virtual_keycode {
-                        Some(VirtualKeyCode::A)      => original_view[0][0] += motion,
-                        Some(VirtualKeyCode::D)      => original_view[0][0] -= motion,
-                        Some(VirtualKeyCode::Space)  => original_view[0][1] -= motion,
-                        Some(VirtualKeyCode::LShift) => original_view[0][1] += motion,
-                        Some(VirtualKeyCode::W)      => original_view[0][2] -= motion,
-                        Some(VirtualKeyCode::S)      => original_view[0][2] += motion,
-                        _ => return,
-                    }
                 }
                 _ => return,
             },
@@ -173,4 +179,21 @@ fn main() {
             .unwrap();
         target.finish().unwrap();
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    /// `view_matrix`がしっかり動くかのテスト
+    fn does_view_matrix_method_work() {
+        assert_eq!(
+            view_matrix(&[2.0, -1.0, 0.0], &[-2.0, 1.0, 1.0], &[0.0, 1.0, 0.0]),
+            [[0.4472136, 0.36514837, -0.81649655, 0.0],
+            [0.0, 0.9128709, 0.40824828, 0.0],
+            [0.8944272, -0.18257418, 0.40824828, 0.0],
+            [-0.8944272, 0.18257415, 2.0412414, 1.0]],
+        );
+    }
 }
