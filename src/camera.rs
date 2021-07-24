@@ -2,12 +2,12 @@ extern crate cgmath;
 use glium::glutin;
 pub struct CameraState {
     aspect_ratio: f32,
-    // position: (f32, f32, f32),
-    position: cgmath::Vector3<f32>,
-    // direction: (f32, f32, f32),
-    direction: cgmath::Vector3<f32>
-    // up: (f32, f32, f32),
-    up: cgmath::Vector3<f32>,
+    position: (f32, f32, f32),
+    //position: cgmath::Vector3<f32>,
+    direction: (f32, f32, f32),
+    // direction: cgmath::Vector3<f32>
+    up: (f32, f32, f32),
+    // up: cgmath::Vector3<f32>,
 
     old_cursor_position: glium::glutin::dpi::PhysicalPosition<f64>,
 
