@@ -12,7 +12,6 @@ uniform mat4 view;
 // 頂点位置を変更するための行列
 uniform mat4 model;
 
-
 void main() {
 	mat4 modelview = view * model;
 	v_normal = transpose(inverse(mat3(modelview))) * normal;

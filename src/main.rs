@@ -8,15 +8,16 @@ mod teapot;
 #[path = "./camera.rs"]
 mod camera;
 
-use cgmath::Vector3;
-
-
 fn main() {
     #[allow(unused_imports)]
     use glium::{glutin, Surface};
 
     let event_loop = glutin::event_loop::EventLoop::new();
-    let wb = glutin::window::WindowBuilder::new();
+    let mut wb = glutin::window::WindowBuilder::new();
+    wb.window.title = "example".to_string();
+    wb.window.min_inner_size = Some(glutin::dpi::Size::Physical(
+        glutin::dpi::PhysicalSize::<u32>::new(1500, 1500),
+    ));
     let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
@@ -50,8 +51,11 @@ fn main() {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                     return;
                 }
-                glutin::event::WindowEvent::KeyboardInput {..} => {
+                glutin::event::WindowEvent::KeyboardInput { .. } => {
                     camera.process_input(&event);
+                }
+                glutin::event::WindowEvent::CursorMoved { .. } => {
+                    camera.process_cursor(&event);
                 }
                 _ => return,
             },
